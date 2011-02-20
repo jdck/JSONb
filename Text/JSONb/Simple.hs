@@ -23,6 +23,7 @@ import Data.Trie
  -}
 data JSON
   = Object (Trie JSON)
+  | KeyValues [(ByteString, JSON)]
   | Array [JSON]
   | String ByteString
   | Number Rational
@@ -32,6 +33,7 @@ deriving instance Eq JSON
 instance Show JSON where
   show json                  =  case json of
     Object trie             ->  unlines $ "Object" : trie_show trie
+    KeyValues keyvals       ->  unlines $ "Object" : keyvals_show keyvals    
     Array list              ->  unlines $ "Array" : fmap show list
     String bytes            ->  unwords ["String", show bytes]
     Number rational         ->  unwords ["Number", show rational]
@@ -39,7 +41,6 @@ instance Show JSON where
     Null                    ->  "Null"
    where
     trie_show                =  fmap edge_show . toList
-     where
-      edge_show (k, v)       =  unwords [show k, "->", show v]
+    keyvals_show             =  fmap edge_show
 
-
+    edge_show (k, v)       =  unwords [show k, "->", show v]

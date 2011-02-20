@@ -8,7 +8,7 @@ module Text.JSONb.Encode where
 
 
 import Data.Ratio
-import Data.ByteString.Char8
+import Data.ByteString.Char8 hiding (map)
 import qualified Data.ByteString.Lazy as Lazy
 
 import Data.Trie hiding (singleton)
@@ -26,6 +26,8 @@ import Text.JSON.Escape
 encode                      ::  Style -> JSON -> ByteString
 encode style@Compact json    =  case json of
   Object trie               ->  '{' `cons` pairs trie `snoc` '}'
+  KeyValues keyvals         ->  '{' `cons` comcat (map encodeTuple keyvals) `snoc` '}'
+    where encodeTuple = uncurry pair
   Array elems               ->  '[' `cons` elements elems `snoc` ']'
   String s                  ->  stringify s
   Number r
@@ -38,8 +40,7 @@ encode style@Compact json    =  case json of
   comcat                     =  intercalate (singleton ',')
   elements                   =  comcat . fmap (encode style)
   pairs                      =  comcat . toListBy pair
-   where
-    pair k v                 =  stringify k `snoc` ':' `append` encode style v
+  pair k v                   =  stringify k `snoc` ':' `append` encode style v
 
 
 {-| Style of serialization. Compact is the only one that is implemented at

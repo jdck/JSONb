@@ -13,6 +13,7 @@ import Data.Word
 import Data.List (permutations)
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.ByteString (ByteString)
 
 import Data.Trie (Trie)
 import qualified Data.Trie as Trie
@@ -74,6 +75,7 @@ deriving instance (Ord counter) => Ord (Schema counter)
 schema :: (Counter counter) => Simple.JSON -> Schema counter
 schema json                  =  case json of
   Simple.Object trie        ->  Obj $ props trie
+  Simple.KeyValues keyvals  ->  Obj $ propsKeyVals keyvals  
   Simple.Array list         ->  Arr . Elements $ schemas list
   Simple.String _           ->  Str
   Simple.Number _           ->  Num
@@ -83,6 +85,9 @@ schema json                  =  case json of
 
 props :: (Counter counter) => Trie.Trie Simple.JSON -> Props counter
 props                        =  Props . fmap (Set.singleton . schema)
+
+propsKeyVals :: Counter counter => [(ByteString, Simple.JSON)] -> Props counter
+propsKeyVals = Props . fmap (Set.singleton . schema) . Trie.fromList
 
 
 {-| Develop a schema for a list of JSON data, collating schemas according to
